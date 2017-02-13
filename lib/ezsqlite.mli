@@ -79,11 +79,14 @@ val column_type : stmt -> int -> kind
 (** Get the number of columns with data *)
 val data_count : stmt -> int
 
-(*(** Get the name of the database a statement is attached to *)
-val database_name : t -> string
+(** Get the name of the database a statement is attached to *)
+val database_name : stmt -> int -> string
 
 (** Get the name of a table a statement is attached to *)
-val table_name : t -> string*)
+val table_name : stmt -> int -> string
+
+(** Get the name of a column a statement value is bound to *)
+val origin_name : stmt -> int -> string
 
 (* Get the name of a column by index *)
 val column_name : stmt -> int -> string

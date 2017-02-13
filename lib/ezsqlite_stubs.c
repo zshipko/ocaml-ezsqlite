@@ -7,6 +7,7 @@
 #include <caml/fail.h>
 #include <caml/callback.h>
 #include <caml/memory.h>
+#include <stdio.h>
 
 #define WRAP(x) do{if (x != SQLITE_OK){\
     sqlite3_error(x);\
@@ -14,7 +15,7 @@
 }}while(0)
 
 void sqlite3_error (int i) {
-    caml_raise_with_string(*caml_named_value("sqlite3 exception"), sqlite3_errstr(i));
+    caml_raise_with_string(*caml_named_value("sqlite error"), sqlite3_errstr(i));
 }
 
 // Db
@@ -150,5 +151,26 @@ value _ezsqlite_column_name (value stmt, value i){
     CAMLparam2(stmt, i);
     CAMLlocal1(s);
     s = caml_copy_string (sqlite3_column_name ((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLreturn(s);
+}
+
+value _ezsqlite_database_name (value stmt, value i){
+    CAMLparam2(stmt, i);
+    CAMLlocal1(s);
+    s = caml_copy_string (sqlite3_column_database_name ((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLreturn(s);
+}
+
+value _ezsqlite_table_name (value stmt, value i){
+    CAMLparam2(stmt, i);
+    CAMLlocal1(s);
+    s = caml_copy_string (sqlite3_column_table_name ((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLreturn(s);
+}
+
+value _ezsqlite_origin_name (value stmt, value i){
+    CAMLparam2(stmt, i);
+    CAMLlocal1(s);
+    s = caml_copy_string (sqlite3_column_origin_name ((sqlite3_stmt*)stmt, Int_val(i)));
     CAMLreturn(s);
 }

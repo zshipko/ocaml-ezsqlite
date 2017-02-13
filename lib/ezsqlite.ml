@@ -1,7 +1,7 @@
 exception Sqlite_error of string
 
 let _ =
-    Callback.register_exception "sqlite3 error" (Sqlite_error "")
+    Callback.register_exception "sqlite error" (Sqlite_error "")
 
 type t_handle
 type t = {
@@ -121,11 +121,14 @@ let int_of_kind = function
 external _ezsqlite_data_count : stmt_handle -> int = "_ezsqlite_data_count"
 external _ezsqlite_column_type : stmt_handle -> int -> int = "_ezsqlite_column_type"
 external _ezsqlite_column_text : stmt_handle -> int -> string = "_ezsqlite_column_text"
-external _ezsqlite_column_blob : stmt_handle -> int -> string = "_ezsqlite_blob"
+external _ezsqlite_column_blob : stmt_handle -> int -> string = "_ezsqlite_column_blob"
 external _ezsqlite_column_int64 : stmt_handle -> int -> int64 = "_ezsqlite_column_int64"
 external _ezsqlite_column_double : stmt_handle -> int -> float = "_ezsqlite_column_double"
 external _ezsqlite_column_value : stmt_handle -> int -> value_handle = "_ezsqlite_column_value"
 external _ezsqlite_column_name : stmt_handle -> int -> string = "_ezsqlite_column_name"
+external _ezsqlite_database_name : stmt_handle -> int -> string = "_ezsqlite_database_name"
+external _ezsqlite_table_name : stmt_handle -> int -> string = "_ezsqlite_table_name"
+external _ezsqlite_origin_name : stmt_handle -> int -> string = "_ezsqlite_origin_name"
 
 let data_count stmt = _ezsqlite_data_count stmt.stmt
 
@@ -152,9 +155,9 @@ let data stmt =
     done; dst
 
 let column_name stmt n = _ezsqlite_column_name stmt.stmt n
-(*let database_name stmt = _ezsqlite_column_database_name stmt.stmt
-let table_name stmt = _ezsqlite_column_table_name stmt.stmt
-let origin_name stmt = _ezsqlite_column_origin_name stmt.stmt*)
+let database_name stmt n = _ezsqlite_database_name stmt.stmt n
+let table_name stmt n = _ezsqlite_table_name stmt.stmt n
+let origin_name stmt n = _ezsqlite_origin_name stmt.stmt n
 let database stmt = stmt._db
 
 let dict stmt =

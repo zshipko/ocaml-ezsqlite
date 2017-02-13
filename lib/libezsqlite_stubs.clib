@@ -1,2 +1,2 @@
-sqlite3.o
 ezsqlite_stubs.o
+sqlite3.o
