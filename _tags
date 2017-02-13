@@ -1,0 +1,6 @@
+true: bin_annot, safe_string
+
+"lib": include
+
+<lib/*.{cma,cmxa,cmxs}>: use_ezsqlite_stubs
+<lib/*.cma>: custom

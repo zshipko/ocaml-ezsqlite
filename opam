@@ -1,0 +1,20 @@
+opam-version: "1.2"
+version: "0.1"
+maintainer: "Zach Shipko <zachshipko@gmail.com>"
+authors: ["Zach Shipko"]
+license: "ISC"
+homepage: "https://github.com/zshipko/ezsqlite"
+bug-reports: "https://github.com/zshipko/ezsqlite/issues"
+dev-repo: "https://github.com/zshipko/ezsqlite.git"
+doc: "https://github.com/zshipko/ezsqlite"
+
+depends: [
+    "ocamlfind" {build}
+    "ocamlbuild" {build}
+    "topkg" {build}
+]
+
+build: [[
+    "ocaml" "./pkg/pkg.ml" "build"
+        "--pinned" "%{pinned}%"
+]]
