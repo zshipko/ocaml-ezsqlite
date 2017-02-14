@@ -140,6 +140,10 @@ value _ezsqlite_column_int64 (value stmt, value i){
     return caml_copy_int64(sqlite3_column_int64((sqlite3_stmt*)stmt, Int_val(i)));
 }
 
+value _ezsqlite_column_int (value stmt, value i){
+    return Val_int(sqlite3_column_int((sqlite3_stmt*)stmt, Int_val(i)));
+}
+
 value _ezsqlite_column_double (value stmt, value i){
     return caml_copy_double(sqlite3_column_double((sqlite3_stmt*)stmt, Int_val(i)));
 }

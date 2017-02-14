@@ -55,14 +55,12 @@ external _ezsqlite_stmt_parameter_index : stmt_handle -> string -> int  = "_ezsq
 let parameter_count stmt = _ezsqlite_stmt_parameter_count stmt.stmt
 let parameter_index stmt = _ezsqlite_stmt_parameter_index stmt.stmt
 
-type value_handle
 type value =
     | Null
     | Blob of string
     | Text of string
     | Double of float
     | Integer of Int64.t
-    | Value of value_handle
 
 (* BIND *)
 
@@ -71,7 +69,6 @@ external _ezsqlite_bind_blob : stmt_handle -> int -> string -> unit = "_ezsqlite
 external _ezsqlite_bind_text : stmt_handle -> int -> string -> unit = "_ezsqlite_bind_text"
 external _ezsqlite_bind_double : stmt_handle -> int -> float -> unit = "_ezsqlite_bind_double"
 external _ezsqlite_bind_int64 : stmt_handle -> int -> int64 -> unit = "_ezsqlite_bind_int64"
-external _ezsqlite_bind_value : stmt_handle -> int -> value_handle -> unit = "_ezsqlite_bind_value"
 
 let bind stmt i = function
     | Null -> _ezsqlite_bind_null stmt.stmt i
@@ -79,7 +76,6 @@ let bind stmt i = function
     | Text s -> _ezsqlite_bind_text stmt.stmt i s
     | Double d -> _ezsqlite_bind_double stmt.stmt i d
     | Integer d -> _ezsqlite_bind_int64 stmt.stmt i d
-    | Value d -> _ezsqlite_bind_value stmt.stmt i d
 
 let bind_dict stmt dict =
     List.iter (fun (k, v) ->
@@ -123,8 +119,8 @@ external _ezsqlite_column_type : stmt_handle -> int -> int = "_ezsqlite_column_t
 external _ezsqlite_column_text : stmt_handle -> int -> string = "_ezsqlite_column_text"
 external _ezsqlite_column_blob : stmt_handle -> int -> string = "_ezsqlite_column_blob"
 external _ezsqlite_column_int64 : stmt_handle -> int -> int64 = "_ezsqlite_column_int64"
+external _ezsqlite_column_int : stmt_handle -> int -> int = "_ezsqlite_column_int"
 external _ezsqlite_column_double : stmt_handle -> int -> float = "_ezsqlite_column_double"
-external _ezsqlite_column_value : stmt_handle -> int -> value_handle = "_ezsqlite_column_value"
 external _ezsqlite_column_name : stmt_handle -> int -> string = "_ezsqlite_column_name"
 external _ezsqlite_database_name : stmt_handle -> int -> string = "_ezsqlite_database_name"
 external _ezsqlite_table_name : stmt_handle -> int -> string = "_ezsqlite_table_name"
@@ -138,9 +134,9 @@ let column_blob stmt i = if i < data_count stmt then _ezsqlite_column_blob stmt.
 
 let column_int64 stmt i = if i < data_count stmt then _ezsqlite_column_int64 stmt.stmt i else raise Not_found
 
-let column_double stmt i = if i < data_count stmt then _ezsqlite_column_double stmt.stmt i else raise Not_found
+let column_int stmt i = if i < data_count stmt then _ezsqlite_column_int stmt.stmt i else raise Not_found
 
-let column_value stmt i = if i > data_count stmt then raise Not_found else _ezsqlite_column_value stmt.stmt i
+let column_double stmt i = if i < data_count stmt then _ezsqlite_column_double stmt.stmt i else raise Not_found
 
 let column_type stmt i = if i > data_count stmt then raise Not_found else  kind_of_int (_ezsqlite_column_type stmt.stmt i)
 
