@@ -33,6 +33,16 @@ type kind =
     | BLOB
     | NULL
 
+exception Invalid_type
+
+val is_null : value -> bool
+val get_string : value -> string
+val get_float : value -> float
+val get_int : value -> int
+val get_int64 : value -> int64
+val get_bool : value -> bool
+
+
 val bind : stmt -> int -> value -> unit
 val bind_dict : stmt -> (string * value) list -> unit
 val bind_list : stmt -> value list -> unit

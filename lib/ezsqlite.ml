@@ -3,6 +3,8 @@ exception Sqlite_error of string
 let _ =
     Callback.register_exception "sqlite error" (Sqlite_error "")
 
+(* DB *)
+
 type t_handle
 type t = {
     filename : string;
@@ -19,6 +21,8 @@ let load path =
     } in
     let _ = Gc.finalise (fun x ->
         _ezsqlite_db_free x.db) db in db
+
+(* STMT *)
 
 type stmt_handle
 type stmt = {
@@ -55,6 +59,7 @@ external _ezsqlite_stmt_parameter_index : stmt_handle -> string -> int  = "_ezsq
 let parameter_count stmt = _ezsqlite_stmt_parameter_count stmt.stmt
 let parameter_index stmt = _ezsqlite_stmt_parameter_index stmt.stmt
 
+(* BIND *)
 type value =
     | Null
     | Blob of string
@@ -62,7 +67,68 @@ type value =
     | Double of float
     | Integer of Int64.t
 
-(* BIND *)
+type kind =
+    | INTEGER
+    | DOUBLE
+    | TEXT
+    | BLOB
+    | NULL
+
+exception Invalid_type
+
+let is_null = function
+    | Null -> true
+    | _ -> false
+
+let get_string = function
+    | Null -> ""
+    | Blob s | Text s -> s
+    | Integer i -> Int64.to_string i
+    | Double d -> string_of_float d
+
+let get_float = function
+    | Integer i -> Int64.to_float i
+    | Double d -> d
+    | Text s -> begin try float_of_string s
+        with _ -> raise Invalid_type end
+    | _ -> raise Invalid_type
+
+let get_int = function
+    | Integer i -> Int64.to_int i
+    | Double d -> int_of_float d
+    | Text s -> begin try int_of_string s
+        with _ -> raise Invalid_type end
+    | _ -> raise Invalid_type
+
+let get_int64 = function
+    | Integer i -> i
+    | Double d -> Int64.of_float d
+    | Text s -> begin try Int64.of_string s
+        with _ -> raise Invalid_type end
+    | _ -> raise Invalid_type
+
+let get_bool = function
+    | Integer 0L -> false
+    | Integer _ -> true
+    | Double 0. -> false
+    | Double _ -> true
+    | Text ("true"|"TRUE") -> true
+    | Text ("false"|"FALSE") -> false
+    | _ -> raise Invalid_type
+
+let kind_of_int = function
+    | 1 -> INTEGER
+    | 2 -> DOUBLE
+    | 3 -> TEXT
+    | 4 -> BLOB
+    | n -> NULL
+
+let int_of_kind = function
+    | INTEGER -> 1
+    | DOUBLE -> 1
+    | TEXT -> 3
+    | BLOB -> 4
+    | NULL -> 5
 
 external _ezsqlite_bind_null : stmt_handle -> int -> unit = "_ezsqlite_bind_null"
 external _ezsqlite_bind_blob : stmt_handle -> int -> string -> unit = "_ezsqlite_bind_blob"
@@ -92,28 +158,6 @@ let bind_list stmt list =
     with _ -> ()
 
 (* COLUMN *)
-
-type kind =
-    | INTEGER
-    | DOUBLE
-    | TEXT
-    | BLOB
-    | NULL
-
-let kind_of_int = function
-    | 1 -> INTEGER
-    | 2 -> DOUBLE
-    | 3 -> TEXT
-    | 4 -> BLOB
-    | n -> NULL
-
-let int_of_kind = function
-    | INTEGER -> 1
-    | DOUBLE -> 1
-    | TEXT -> 3
-    | BLOB -> 4
-    | NULL -> 5
-
 external _ezsqlite_data_count : stmt_handle -> int = "_ezsqlite_data_count"
 external _ezsqlite_column_type : stmt_handle -> int -> int = "_ezsqlite_column_type"
 external _ezsqlite_column_text : stmt_handle -> int -> string = "_ezsqlite_column_text"
