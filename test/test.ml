@@ -15,7 +15,7 @@ let green s =
     "\027[0;32m" ^ s ^ "\027[0m"
 
 let check counter name v x =
-    let _ = Printf.printf "Running %s..... " name in
+    let _ = Printf.printf "Running %s ..... " name in
     try
         if v () <> x then
             let _ = counter.fail <- counter.fail + 1 in
@@ -24,10 +24,10 @@ let check counter name v x =
             print_endline (green "passed")
     with exc ->
         let _ = counter.fail <- counter.fail + 1 in
-        Printf.printf "\033[0;31mFAILED\033[0m  with error:\n\t%s\n" (Printexc.to_string exc)
+        Printf.printf "\027[0;31mFAILED\027[0m  with error:\n\t%s\n" (Printexc.to_string exc)
 
 let check_raise counter name v =
-    let _ = Printf.printf "Running %s..... " name in
+    let _ = Printf.printf "Running %s ..... " name in
     try
         let _ = v () in
         let _ = counter.fail <- counter.fail + 1 in

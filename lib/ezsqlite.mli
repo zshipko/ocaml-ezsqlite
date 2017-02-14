@@ -59,6 +59,8 @@ val column : stmt -> int -> value
 (** Execute a statement that returns no response *)
 val exec : stmt -> unit
 
+val step : stmt -> bool
+
 (** Iterate over each step *)
 val iter : stmt -> (stmt -> unit) -> unit
 

@@ -6,7 +6,7 @@ let _ =
 type t_handle
 type t = {
     filename : string;
-    db : t_handle;
+    mutable db : t_handle;
 }
 
 external _ezsqlite_db_load : string -> t_handle = "_ezsqlite_db_load"
@@ -23,8 +23,8 @@ let load path =
 type stmt_handle
 type stmt = {
     raw : string;
-    _db : t;
-    stmt : stmt_handle;
+    mutable _db : t;
+    mutable stmt : stmt_handle;
 }
 
 external _ezsqlite_stmt_prepare : t_handle -> string -> stmt_handle = "_ezsqlite_stmt_prepare"
@@ -109,7 +109,7 @@ let kind_of_int = function
     | 2 -> DOUBLE
     | 3 -> TEXT
     | 4 -> BLOB
-    | _ -> NULL
+    | n -> NULL
 
 let int_of_kind = function
     | INTEGER -> 1
@@ -130,22 +130,27 @@ external _ezsqlite_database_name : stmt_handle -> int -> string = "_ezsqlite_dat
 external _ezsqlite_table_name : stmt_handle -> int -> string = "_ezsqlite_table_name"
 external _ezsqlite_origin_name : stmt_handle -> int -> string = "_ezsqlite_origin_name"
 
-let data_count stmt = _ezsqlite_data_count stmt.stmt
+let data_count stmt =  _ezsqlite_data_count stmt.stmt
 
-let column_text stmt i = if i < data_count stmt then _ezsqlite_column_text stmt.stmt i else ""
-let column_blob stmt i = if i < data_count stmt then _ezsqlite_column_blob stmt.stmt i else ""
-let column_int64 stmt i = if i < data_count stmt then _ezsqlite_column_int64 stmt.stmt i else 0L
-let column_double stmt i = if i < data_count stmt then _ezsqlite_column_double stmt.stmt i else 0.
+let column_text stmt i = if i < data_count stmt then _ezsqlite_column_text stmt.stmt i else raise Not_found
+
+let column_blob stmt i = if i < data_count stmt then _ezsqlite_column_blob stmt.stmt i else raise Not_found
+
+let column_int64 stmt i = if i < data_count stmt then _ezsqlite_column_int64 stmt.stmt i else raise Not_found
+
+let column_double stmt i = if i < data_count stmt then _ezsqlite_column_double stmt.stmt i else raise Not_found
+
 let column_value stmt i = if i > data_count stmt then raise Not_found else _ezsqlite_column_value stmt.stmt i
-let column_type stmt i = kind_of_int (_ezsqlite_column_type stmt.stmt i)
+
+let column_type stmt i = if i > data_count stmt then raise Not_found else  kind_of_int (_ezsqlite_column_type stmt.stmt i)
+
 let column stmt i =
-    if i < data_count stmt then match column_type stmt i with
+    match column_type stmt i with
         | INTEGER -> Integer (column_int64 stmt i)
         | DOUBLE -> Double (column_double stmt i)
         | TEXT -> Text (column_text stmt i)
         | BLOB -> Blob (column_blob stmt i)
         | NULL -> Null
-    else Null
 
 let data stmt =
     let len = data_count stmt in
@@ -154,10 +159,10 @@ let data stmt =
         dst.(i) <- column stmt i
     done; dst
 
-let column_name stmt n = _ezsqlite_column_name stmt.stmt n
-let database_name stmt n = _ezsqlite_database_name stmt.stmt n
-let table_name stmt n = _ezsqlite_table_name stmt.stmt n
-let origin_name stmt n = _ezsqlite_origin_name stmt.stmt n
+let column_name stmt n = if n < data_count stmt then _ezsqlite_column_name stmt.stmt n else raise Not_found
+let database_name stmt n = if n < data_count stmt then _ezsqlite_database_name stmt.stmt n else raise Not_found
+let table_name stmt n = if n < data_count stmt then _ezsqlite_table_name stmt.stmt n else raise Not_found
+let origin_name stmt n = if n < data_count stmt then _ezsqlite_origin_name stmt.stmt n else raise Not_found
 let database stmt = stmt._db
 
 let dict stmt =
@@ -171,13 +176,17 @@ let iter stmt fn =
     while step stmt do fn stmt done
 
 let map stmt fn =
-    let dst = ref [] in
-    while step stmt do
-        dst := fn stmt::!dst
-    done; List.rev !dst
+    if step stmt then
+        let dst = ref [] in
+        while step stmt do
+            dst := fn stmt::!dst
+        done; List.rev !dst
+    else []
 
 let fold stmt fn acc =
-    let dst = ref acc in
-    while step stmt do
-        dst := fn stmt !dst
-    done; !dst
+    if step stmt then
+        let dst = ref acc in
+        while step stmt do
+            dst := fn stmt !dst
+        done; !dst
+    else acc

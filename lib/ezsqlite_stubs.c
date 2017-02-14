@@ -8,6 +8,7 @@
 #include <caml/callback.h>
 #include <caml/memory.h>
 #include <stdio.h>
+#include <string.h>
 
 #define WRAP(x) do{if (x != SQLITE_OK){\
     sqlite3_error(x);\
@@ -108,39 +109,39 @@ value _ezsqlite_bind_value (value stmt, value i, value b){
 }
 
 value _ezsqlite_data_count (value stmt){
-    return Int_val(sqlite3_data_count((sqlite3_stmt*)stmt));
+    return Val_int(sqlite3_data_count((sqlite3_stmt*)stmt));
 }
 
 value _ezsqlite_column_type (value stmt, value i){
-    return Int_val(sqlite3_column_type((sqlite3_stmt*)stmt, Int_val(i)));
+    return Val_int(sqlite3_column_type((sqlite3_stmt*)stmt, Int_val(i)));
 }
 
 value _ezsqlite_column_text (value stmt, value i){
-    CAMLparam2(stmt, i);
-    CAMLlocal1(s);
-    s = caml_copy_string (sqlite3_column_text ((sqlite3_stmt*)stmt, Int_val(i)));
-    CAMLreturn(s);
+    int len = sqlite3_column_bytes ((sqlite3_stmt*)stmt, Int_val(i));
+    value s = caml_alloc_string (len);
+    const char * txt = sqlite3_column_text ((sqlite3_stmt*)stmt, Int_val(i));
+    if (txt){
+        memcpy(String_val(s), txt, len);
+    }
+    return s;
 }
 
 value _ezsqlite_column_blob (value stmt, value i){
-    CAMLparam2(stmt, i);
-    CAMLlocal1(s);
-    s = caml_copy_string (sqlite3_column_blob ((sqlite3_stmt*)stmt, Int_val(i)));
-    CAMLreturn(s);
+    int len = sqlite3_column_bytes ((sqlite3_stmt*)stmt, Int_val(i));
+    value s = caml_alloc_string (len);
+    const char * blob = sqlite3_column_blob ((sqlite3_stmt*)stmt, Int_val(i));
+    if (blob){
+        memcpy(String_val(s), blob, len);
+    }
+    return s;
 }
 
 value _ezsqlite_column_int64 (value stmt, value i){
-    CAMLparam2(stmt, i);
-    CAMLlocal1(d);
-    d = caml_copy_int64(sqlite3_column_int64((sqlite3_stmt*)stmt, Int_val(i)));
-    CAMLreturn(d);
+    return caml_copy_int64(sqlite3_column_int64((sqlite3_stmt*)stmt, Int_val(i)));
 }
 
 value _ezsqlite_column_double (value stmt, value i){
-    CAMLparam2(stmt, i);
-    CAMLlocal1(d);
-    d = caml_copy_double(sqlite3_column_double((sqlite3_stmt*)stmt, Int_val(i)));
-    CAMLreturn(d);
+    return caml_copy_double(sqlite3_column_double((sqlite3_stmt*)stmt, Int_val(i)));
 }
 
 value _ezsqlite_column_value (value stmt, value i){
@@ -148,29 +149,17 @@ value _ezsqlite_column_value (value stmt, value i){
 }
 
 value _ezsqlite_column_name (value stmt, value i){
-    CAMLparam2(stmt, i);
-    CAMLlocal1(s);
-    s = caml_copy_string (sqlite3_column_name ((sqlite3_stmt*)stmt, Int_val(i)));
-    CAMLreturn(s);
+    return caml_copy_string (sqlite3_column_name ((sqlite3_stmt*)stmt, Int_val(i)));
 }
 
 value _ezsqlite_database_name (value stmt, value i){
-    CAMLparam2(stmt, i);
-    CAMLlocal1(s);
-    s = caml_copy_string (sqlite3_column_database_name ((sqlite3_stmt*)stmt, Int_val(i)));
-    CAMLreturn(s);
+    return caml_copy_string (sqlite3_column_database_name ((sqlite3_stmt*)stmt, Int_val(i)));
 }
 
 value _ezsqlite_table_name (value stmt, value i){
-    CAMLparam2(stmt, i);
-    CAMLlocal1(s);
-    s = caml_copy_string (sqlite3_column_table_name ((sqlite3_stmt*)stmt, Int_val(i)));
-    CAMLreturn(s);
+    return caml_copy_string (sqlite3_column_table_name ((sqlite3_stmt*)stmt, Int_val(i)));
 }
 
 value _ezsqlite_origin_name (value stmt, value i){
-    CAMLparam2(stmt, i);
-    CAMLlocal1(s);
-    s = caml_copy_string (sqlite3_column_origin_name ((sqlite3_stmt*)stmt, Int_val(i)));
-    CAMLreturn(s);
+    return caml_copy_string (sqlite3_column_origin_name ((sqlite3_stmt*)stmt, Int_val(i)));
 }

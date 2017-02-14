@@ -1,3 +1,4 @@
+*.swp
 *.db
 test/ezsqlite_test.native
 _build
