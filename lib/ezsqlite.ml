@@ -216,17 +216,13 @@ let iter stmt fn =
     while step stmt do fn stmt done
 
 let map stmt fn =
-    if step stmt then
-        let dst = ref [] in
-        while step stmt do
-            dst := fn stmt::!dst
-        done; List.rev !dst
-    else []
+    let dst = ref [] in
+    while step stmt do
+        dst := fn stmt::!dst
+    done; List.rev !dst
 
 let fold stmt fn acc =
-    if step stmt then
-        let dst = ref acc in
-        while step stmt do
-            dst := fn stmt !dst
-        done; !dst
-    else acc
+    let dst = ref acc in
+    while step stmt do
+        dst := fn stmt !dst
+    done; !dst
