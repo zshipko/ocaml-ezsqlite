@@ -3,63 +3,6 @@ exception Sqlite_error of string
 let _ =
     Callback.register_exception "sqlite error" (Sqlite_error "")
 
-(* DB *)
-
-type t_handle
-type t = {
-    filename : string;
-    mutable db : t_handle;
-}
-
-external _ezsqlite_db_load : string -> t_handle = "_ezsqlite_db_load"
-external _ezsqlite_db_free : t_handle -> unit = "_ezsqlite_db_free"
-
-let load path =
-    let db = {
-        filename = path;
-        db = _ezsqlite_db_load path;
-    } in
-    let _ = Gc.finalise (fun x ->
-        _ezsqlite_db_free x.db) db in db
-
-(* STMT *)
-
-type stmt_handle
-type stmt = {
-    raw : string;
-    mutable _db : t;
-    mutable stmt : stmt_handle;
-}
-
-external _ezsqlite_stmt_prepare : t_handle -> string -> stmt_handle = "_ezsqlite_stmt_prepare"
-external _ezsqlite_stmt_finalize : stmt_handle -> unit = "_ezsqlite_stmt_finalize"
-external _ezsqlite_stmt_step : stmt_handle -> bool = "_ezsqlite_stmt_step"
-external _ezsqlite_stmt_reset : stmt_handle -> unit = "_ezsqlite_stmt_reset"
-external _ezsqlite_stmt_clear_bindings : stmt_handle -> unit = "_ezsqlite_stmt_clear_bindings"
-
-let prepare db s =
-    let stmt = {
-        raw = s;
-        _db = db;
-        stmt = _ezsqlite_stmt_prepare db.db s;
-    } in
-    let _ = Gc.finalise (fun x ->
-        _ezsqlite_stmt_finalize x.stmt) stmt in stmt
-
-let step stmt = _ezsqlite_stmt_step stmt.stmt
-let reset stmt = _ezsqlite_stmt_reset stmt.stmt
-let clear_bindings stmt = _ezsqlite_stmt_clear_bindings stmt.stmt
-
-let clear stmt =
-    reset stmt;
-    clear_bindings stmt
-
-external _ezsqlite_stmt_parameter_count : stmt_handle -> int = "_ezsqlite_stmt_parameter_count"
-external _ezsqlite_stmt_parameter_index : stmt_handle -> string -> int  = "_ezsqlite_stmt_parameter_index"
-let parameter_count stmt = _ezsqlite_stmt_parameter_count stmt.stmt
-let parameter_index stmt = _ezsqlite_stmt_parameter_index stmt.stmt
-
-(* BIND *)
 type value =
     | Null
     | Blob of string
@@ -130,6 +73,74 @@ let int_of_kind = function
     | BLOB -> 4
     | NULL -> 5
 
+(* DB *)
+
+type t_handle
+type t = {
+    filename : string;
+    mutable db : t_handle;
+}
+
+external _ezsqlite_db_load : string -> t_handle = "_ezsqlite_db_load"
+external _ezsqlite_db_free : t_handle -> unit = "_ezsqlite_db_free"
+external _ezsqlite_create_function :  t_handle -> string -> int -> unit = "_ezsqlite_db_create_function"
+
+let load path =
+    let db = {
+        filename = path;
+        db = _ezsqlite_db_load path;
+    } in
+    let _ = Gc.finalise (fun x ->
+        _ezsqlite_db_free x.db) db in db
+
+let auto_extension fn =
+    Callback.register "auto extension" (fun x -> fn {filename = ""; db = x})
+
+let commit_hook fn =
+    Callback.register "commit hook" fn
+
+let create_function db name nargs fn =
+    Callback.register name fn;
+    _ezsqlite_create_function db.db name nargs
+
+(* STMT *)
+
+type stmt_handle
+type stmt = {
+    raw : string;
+    mutable _db : t;
+    mutable stmt : stmt_handle;
+}
+
+external _ezsqlite_stmt_prepare : t_handle -> string -> stmt_handle = "_ezsqlite_stmt_prepare"
+external _ezsqlite_stmt_finalize : stmt_handle -> unit = "_ezsqlite_stmt_finalize"
+external _ezsqlite_stmt_step : stmt_handle -> bool = "_ezsqlite_stmt_step"
+external _ezsqlite_stmt_reset : stmt_handle -> unit = "_ezsqlite_stmt_reset"
+external _ezsqlite_stmt_clear_bindings : stmt_handle -> unit = "_ezsqlite_stmt_clear_bindings"
+
+let prepare db s =
+    let stmt = {
+        raw = s;
+        _db = db;
+        stmt = _ezsqlite_stmt_prepare db.db s;
+    } in
+    let _ = Gc.finalise (fun x ->
+        _ezsqlite_stmt_finalize x.stmt) stmt in stmt
+
+let step stmt = _ezsqlite_stmt_step stmt.stmt
+let reset stmt = _ezsqlite_stmt_reset stmt.stmt
+let clear_bindings stmt = _ezsqlite_stmt_clear_bindings stmt.stmt
+
+let clear stmt =
+    reset stmt;
+    clear_bindings stmt
+
+external _ezsqlite_stmt_parameter_count : stmt_handle -> int = "_ezsqlite_stmt_parameter_count"
+external _ezsqlite_stmt_parameter_index : stmt_handle -> string -> int  = "_ezsqlite_stmt_parameter_index"
+let parameter_count stmt = _ezsqlite_stmt_parameter_count stmt.stmt
+let parameter_index stmt = _ezsqlite_stmt_parameter_index stmt.stmt
+
+(* BIND *)
 external _ezsqlite_bind_null : stmt_handle -> int -> unit = "_ezsqlite_bind_null"
 external _ezsqlite_bind_blob : stmt_handle -> int -> string -> unit = "_ezsqlite_bind_blob"
 external _ezsqlite_bind_text : stmt_handle -> int -> string -> unit = "_ezsqlite_bind_text"

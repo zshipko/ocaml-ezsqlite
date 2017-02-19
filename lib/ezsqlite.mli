@@ -1,23 +1,5 @@
 exception Sqlite_error of string
 
-(** sqlite3 handle *)
-type t
-
-(** Load database from file *)
-val load : string -> t
-
-(** sqlite3_stmt handle*)
-type stmt
-
-(** Prepare an SQL statement *)
-val prepare : t -> string -> stmt
-
-(** Reset a statement -- this does not unbind bound values *)
-val reset : stmt -> unit
-
-(** Reset and clear bindings*)
-val clear : stmt -> unit
-
 (** Datatypes that can be stored by SQLite *)
 type value =
     | Null
@@ -42,6 +24,29 @@ val get_int : value -> int
 val get_int64 : value -> int64
 val get_bool : value -> bool
 
+(** sqlite3 handle *)
+type t
+
+type t_handle
+
+(** Load database from file *)
+val load : string -> t
+
+val auto_extension : (t -> unit) -> unit
+val commit_hook : (unit -> int) -> unit
+val create_function : t -> string -> int -> (value array -> value) -> unit
+
+(** sqlite3_stmt handle*)
+type stmt
+
+(** Prepare an SQL statement *)
+val prepare : t -> string -> stmt
+
+(** Reset a statement -- this does not unbind bound values *)
+val reset : stmt -> unit
+
+(** Reset and clear bindings*)
+val clear : stmt -> unit
 
 val bind : stmt -> int -> value -> unit
 val bind_dict : stmt -> (string * value) list -> unit
