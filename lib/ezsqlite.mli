@@ -34,6 +34,7 @@ val load : string -> t
 
 val auto_extension : (t -> unit) -> unit
 val commit_hook : (unit -> int) -> unit
+val update_hook : (int -> string -> string -> int64 -> unit) -> unit
 val create_function : t -> string -> int -> (value array -> value) -> unit
 
 (** sqlite3_stmt handle*)

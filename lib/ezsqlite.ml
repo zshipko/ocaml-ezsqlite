@@ -99,6 +99,9 @@ let auto_extension fn =
 let commit_hook fn =
     Callback.register "commit hook" fn
 
+let update_hook fn =
+    Callback.register "update hook" fn
+
 let create_function db name nargs fn =
     Callback.register name fn;
     _ezsqlite_create_function db.db name nargs

@@ -127,6 +127,15 @@ int commit_hook_callback(void *data){
     return 0;
 }
 
+void update_hook_callback(void *data, int i, char const *a, char const *b, sqlite3_int64 rowid){
+    value *v = caml_named_value("update hook");
+
+    if (v){
+        value args[] = {Int_val(i), caml_copy_string (a), caml_copy_string (b), caml_copy_int64(rowid)};
+        caml_callbackN(*v,4, args);
+    }
+}
+
 int auto_extension_callback(sqlite3 *db, char **err, void * _api){
     value *v = caml_named_value("auto extension");
     if (v){
@@ -134,6 +143,7 @@ int auto_extension_callback(sqlite3 *db, char **err, void * _api){
     }
 
     sqlite3_commit_hook(db, commit_hook_callback, NULL);
+    sqlite3_update_hook(db, update_hook_callback, NULL);
 
     return SQLITE_OK;
 }
