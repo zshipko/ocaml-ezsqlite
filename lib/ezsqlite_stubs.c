@@ -303,3 +303,43 @@ value _ezsqlite_table_name (value stmt, value i){
 value _ezsqlite_origin_name (value stmt, value i){
     return caml_copy_string (sqlite3_column_origin_name ((sqlite3_stmt*)stmt, Int_val(i)));
 }
+
+// Backup
+value _ezsqlite_backup_init (value to, value toDb, value from, value fromDb){
+    sqlite3 *_to = (sqlite3*)to;
+    sqlite3 *_from = (sqlite3*)from;
+
+    sqlite3_backup *bup = sqlite3_backup_init(_to, String_val (toDb), _from, String_val(fromDb));
+    if (bup == NULL){
+        caml_raise_with_string(*caml_named_value("sqlite error"), sqlite3_errmsg(_to));
+        return Val_unit;
+    }
+
+    return (value)bup;
+}
+
+value _ezsqlite_backup_step (value backup, value n){
+    int res = sqlite3_backup_step ((sqlite3_backup*)backup, Int_val(n));
+
+    if (res == SQLITE_OK || res == SQLITE_BUSY || res == SQLITE_LOCKED){
+        return Val_true;
+    } else if (res == SQLITE_DONE) {
+        return Val_false;
+    } else {
+        WRAP(res);
+        return Val_false;
+    }
+}
+
+value _ezsqlite_backup_finish(value backup){
+    WRAP(sqlite3_backup_finish ((sqlite3_backup*)backup));
+    return Val_unit;
+}
+
+value _ezsqlite_backup_remaining(value backup){
+    return Val_int (sqlite3_backup_remaining ((sqlite3_backup*)backup));
+}
+
+value _ezsqlite_backup_pagecount(value backup){
+    return Val_int (sqlite3_backup_pagecount ((sqlite3_backup*)backup));
+}

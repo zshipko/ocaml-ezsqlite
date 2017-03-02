@@ -240,3 +240,39 @@ let fold stmt fn acc =
     while step stmt do
         dst := fn stmt !dst
     done; !dst
+
+let run db s l fn =
+    let x = prepare db s in
+    let () = bind_list x l in
+    map x fn
+
+module Backup = struct
+    type backup_handle
+    type backup = {
+        backup : backup_handle;
+    }
+
+    external _ezsqlite_backup_init : t_handle -> string -> t_handle -> string -> backup_handle = "_ezsqlite_backup_init"
+    external _ezsqlite_backup_finish : backup_handle -> unit = "_ezsqlite_backup_finish"
+    external _ezsqlite_backup_step : backup_handle -> int ->  bool = "_ezsqlite_backup_step"
+    external _ezsqlite_backup_pagecount : backup_handle -> int = "_ezsqlite_backup_pagecount"
+    external _ezsqlite_backup_remaining : backup_handle -> int = "_ezsqlite_backup_remaining"
+
+    let init dst dstName src srcName =
+        let b = {
+            backup = _ezsqlite_backup_init dst.db dstName src.db srcName
+        } in
+        let _ = Gc.finalise (fun x ->
+            _ezsqlite_backup_finish(x.backup)) in b
+
+    let step b n =
+        _ezsqlite_backup_step b.backup n
+
+    let remaining b =
+        _ezsqlite_backup_remaining b.backup
+
+    let pagecount b =
+        _ezsqlite_backup_pagecount b.backup
+
+end
+

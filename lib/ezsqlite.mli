@@ -83,6 +83,7 @@ val iter : stmt -> (stmt -> unit) -> unit
 val map : stmt -> (stmt -> 'a) -> 'a list
 
 val fold : stmt -> (stmt -> 'a -> 'a) -> 'a -> 'a
+val run : t -> string -> value list -> (stmt -> 'a) -> 'a list
 
 (** Get each column as an array *)
 val data : stmt -> value array
@@ -107,3 +108,12 @@ val origin_name : stmt -> int -> string
 
 (* Get the name of a column by index *)
 val column_name : stmt -> int -> string
+
+module Backup : sig
+    type backup
+
+    val init : t -> string -> t -> string -> backup
+    val step : backup -> int -> bool
+    val remaining : backup -> int
+    val pagecount : backup -> int
+end
