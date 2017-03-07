@@ -83,7 +83,7 @@ val iter : stmt -> (stmt -> unit) -> unit
 val map : stmt -> (stmt -> 'a) -> 'a list
 
 val fold : stmt -> (stmt -> 'a -> 'a) -> 'a -> 'a
-val run : t -> string -> value list -> (stmt -> 'a) -> 'a list
+val run : ?bind:value list -> t -> string  -> (stmt -> 'a) -> 'a list
 
 (** Get each column as an array *)
 val data : stmt -> value array

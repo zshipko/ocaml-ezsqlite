@@ -241,9 +241,9 @@ let fold stmt fn acc =
         dst := fn stmt !dst
     done; !dst
 
-let run db s l fn =
+let run ?bind:(bind=[]) db s fn =
     let x = prepare db s in
-    let () = bind_list x l in
+    let () = bind_list x bind in
     map x fn
 
 module Backup = struct
