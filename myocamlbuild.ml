@@ -2,8 +2,6 @@ open Ocamlbuild_plugin
 
 let () = dispatch begin function
     | After_rules ->
-      (*dep ["c"; "compile"; "use_ezsqlite_headers"] ["src/ocaml_ezsqlite.h"];*)
-
 
     flag ["use_ezsqlite_stubs"] &
         S[A"-I"; A"lib"];
@@ -21,7 +19,7 @@ let () = dispatch begin function
         S[ A"-cclib"; A"-lezsqlite_stubs"; A"-cclib"; A"-lpthread"];
 
     flag ["link"; "ocaml"; "link_ezsqlite_stubs"] &
-        S[A"-cclib"; A"lib/libezsqlite_stubs.a"; A"-cclib"; A"-lpthread"];
+        S[A"-cclib"; A"-lezsqlite_stubs"; A"-cclib"; A"-lpthread"];
 
     | _ -> ()
 end
