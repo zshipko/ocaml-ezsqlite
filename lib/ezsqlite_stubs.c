@@ -158,188 +158,220 @@ static void _init (){
 
 value _ezsqlite_db_load (value path){
     _init();
+    CAMLparam1(path);
     sqlite3 *handle = NULL;
     WRAP(sqlite3_open (String_val(path), &handle));
-    return (value)handle;
+    CAMLreturn ((value)handle);
 }
 
 value _ezsqlite_db_free (value db){
+    CAMLparam1(db);
     sqlite3 *handle = (sqlite3*)db;
     WRAP(sqlite3_close(handle));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 // Stmt
 value _ezsqlite_stmt_prepare (value db, value s) {
+    CAMLparam2(db, s);
     sqlite3 *handle = (sqlite3*)db;
     sqlite3_stmt *stmt = NULL;
     WRAP(sqlite3_prepare_v2(handle, String_val(s), caml_string_length(s), &stmt, NULL));
-    return (value)stmt;
+    CAMLreturn((value)stmt);
 }
 
 value _ezsqlite_stmt_finalize (value stmt) {
+    CAMLparam1(stmt);
     WRAP(sqlite3_finalize((sqlite3_stmt*)stmt));
-    return Val_unit;
+    CAMLreturn (Val_unit);
 }
 
 value _ezsqlite_stmt_step (value stmt){
+    CAMLparam1 (stmt);
     int res = sqlite3_step ((sqlite3_stmt*)stmt);
     switch (res){
     case SQLITE_ROW:
-        return Val_true;
+        CAMLreturn(Val_true);
     case SQLITE_DONE:
-        return Val_false;
+        CAMLreturn(Val_false);
     default:
         WRAP(res);
-        return Val_false;
+        CAMLreturn(Val_false);
     }
 }
 
 value _ezsqlite_stmt_reset (value stmt) {
+    CAMLparam1(stmt);
     WRAP(sqlite3_reset((sqlite3_stmt*)stmt));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_stmt_clear_bindings (value stmt) {
+    CAMLparam1(stmt);
     WRAP(sqlite3_clear_bindings((sqlite3_stmt*)stmt));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
-
 value _ezsqlite_stmt_parameter_count (value stmt) {
-    return Val_int (sqlite3_bind_parameter_count ((sqlite3_stmt*)stmt));
+    CAMLparam1(stmt);
+    CAMLreturn(Val_int (sqlite3_bind_parameter_count ((sqlite3_stmt*)stmt)));
 }
 
 value _ezsqlite_stmt_parameter_index (value stmt, value name) {
-    return Val_int (sqlite3_bind_parameter_index ((sqlite3_stmt*)stmt, String_val(name)));
+    CAMLparam2(stmt, name);
+    CAMLreturn (Val_int (sqlite3_bind_parameter_index ((sqlite3_stmt*)stmt, String_val(name))));
 }
 
 value _ezsqlite_bind_null (value stmt, value i){
+    CAMLparam2(stmt, i);
     WRAP(sqlite3_bind_null((sqlite3_stmt*)stmt, Int_val(i)));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_bind_blob (value stmt, value i, value s){
+    CAMLparam3(stmt, i, s);
     WRAP(sqlite3_bind_blob((sqlite3_stmt*)stmt, Int_val(i), String_val(s), caml_string_length(s), SQLITE_TRANSIENT));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_bind_text (value stmt, value i, value s){
+    CAMLparam3(stmt, i, s);
     WRAP(sqlite3_bind_text((sqlite3_stmt*)stmt, Int_val(i), String_val(s), caml_string_length(s), SQLITE_TRANSIENT));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_bind_int64 (value stmt, value i, value b){
+    CAMLparam3(stmt, i, b);
     WRAP(sqlite3_bind_int64((sqlite3_stmt*)stmt, Int_val(i), Int64_val(b)));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_bind_double (value stmt, value i, value b){
+    CAMLparam3(stmt, i, b);
     WRAP(sqlite3_bind_double((sqlite3_stmt*)stmt, Int_val(i), Double_val(b)));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_bind_value (value stmt, value i, value b){
+    CAMLparam3(stmt, i, b);
     WRAP(sqlite3_bind_value((sqlite3_stmt*)stmt, Int_val(i), (sqlite3_value*)b));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_data_count (value stmt){
-    return Val_int(sqlite3_data_count((sqlite3_stmt*)stmt));
+    CAMLparam1(stmt);
+    CAMLreturn(Val_int(sqlite3_data_count((sqlite3_stmt*)stmt)));
 }
 
 value _ezsqlite_column_type (value stmt, value i){
-    return Val_int(sqlite3_column_type((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLparam2(stmt, i);
+    CAMLreturn(Val_int(sqlite3_column_type((sqlite3_stmt*)stmt, Int_val(i))));
 }
 
 value _ezsqlite_column_text (value stmt, value i){
+    CAMLparam1(stmt);
     int len = sqlite3_column_bytes ((sqlite3_stmt*)stmt, Int_val(i));
     value s = caml_alloc_string (len);
-    const char * txt = sqlite3_column_text ((sqlite3_stmt*)stmt, Int_val(i));
+    const char* txt = sqlite3_column_text ((sqlite3_stmt*)stmt, Int_val(i));
     if (txt){
         memcpy(String_val(s), txt, len);
     }
-    return s;
+    CAMLreturn(s);
 }
 
 value _ezsqlite_column_blob (value stmt, value i){
+    CAMLparam2(stmt, i);
     int len = sqlite3_column_bytes ((sqlite3_stmt*)stmt, Int_val(i));
     value s = caml_alloc_string (len);
     const char * blob = sqlite3_column_blob ((sqlite3_stmt*)stmt, Int_val(i));
     if (blob){
         memcpy(String_val(s), blob, len);
     }
-    return s;
+    CAMLreturn(s);
 }
 
 value _ezsqlite_column_int64 (value stmt, value i){
-    return caml_copy_int64(sqlite3_column_int64((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLparam2(stmt, i);
+    CAMLreturn(caml_copy_int64(sqlite3_column_int64((sqlite3_stmt*)stmt, Int_val(i))));
 }
 
 value _ezsqlite_column_int (value stmt, value i){
-    return Val_int(sqlite3_column_int((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLparam2(stmt, i);
+    CAMLreturn(Val_int(sqlite3_column_int((sqlite3_stmt*)stmt, Int_val(i))));
 }
 
 value _ezsqlite_column_double (value stmt, value i){
-    return caml_copy_double(sqlite3_column_double((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLparam2(stmt, i);
+    CAMLreturn(caml_copy_double(sqlite3_column_double((sqlite3_stmt*)stmt, Int_val(i))));
 }
 
 value _ezsqlite_column_value (value stmt, value i){
-    return (value)sqlite3_column_value((sqlite3_stmt*)stmt, Int_val(i));
+    CAMLparam2(stmt, i);
+    CAMLreturn((value)sqlite3_column_value((sqlite3_stmt*)stmt, Int_val(i)));
 }
 
 value _ezsqlite_column_name (value stmt, value i){
-    return caml_copy_string (sqlite3_column_name ((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLparam2(stmt, i);
+    CAMLreturn(caml_copy_string (sqlite3_column_name ((sqlite3_stmt*)stmt, Int_val(i))));
 }
 
 value _ezsqlite_database_name (value stmt, value i){
-    return caml_copy_string (sqlite3_column_database_name ((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLparam2(stmt, i);
+    CAMLreturn(caml_copy_string (sqlite3_column_database_name ((sqlite3_stmt*)stmt, Int_val(i))));
 }
 
 value _ezsqlite_table_name (value stmt, value i){
-    return caml_copy_string (sqlite3_column_table_name ((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLparam2(stmt, i);
+    CAMLreturn(caml_copy_string (sqlite3_column_table_name ((sqlite3_stmt*)stmt, Int_val(i))));
 }
 
 value _ezsqlite_origin_name (value stmt, value i){
-    return caml_copy_string (sqlite3_column_origin_name ((sqlite3_stmt*)stmt, Int_val(i)));
+    CAMLparam2(stmt, i);
+    CAMLreturn(caml_copy_string (sqlite3_column_origin_name ((sqlite3_stmt*)stmt, Int_val(i))));
 }
 
 // Backup
 value _ezsqlite_backup_init (value to, value toDb, value from, value fromDb){
+    CAMLparam4(to, toDb, from, fromDb);
     sqlite3 *_to = (sqlite3*)to;
     sqlite3 *_from = (sqlite3*)from;
 
     sqlite3_backup *bup = sqlite3_backup_init(_to, String_val (toDb), _from, String_val(fromDb));
     if (bup == NULL){
         caml_raise_with_string(*caml_named_value("sqlite error"), sqlite3_errmsg(_to));
-        return Val_unit;
+        CAMLreturn(Val_unit);
     }
 
-    return (value)bup;
+    CAMLreturn((value)bup);
 }
 
 value _ezsqlite_backup_step (value backup, value n){
+    CAMLparam2(backup, n);
+
     int res = sqlite3_backup_step ((sqlite3_backup*)backup, Int_val(n));
 
     if (res == SQLITE_OK || res == SQLITE_BUSY || res == SQLITE_LOCKED){
-        return Val_true;
+        CAMLreturn(Val_true);
     } else if (res == SQLITE_DONE) {
-        return Val_false;
+        CAMLreturn(Val_false);
     } else {
         WRAP(res);
-        return Val_false;
+        CAMLreturn(Val_false);
     }
 }
 
 value _ezsqlite_backup_finish(value backup){
+    CAMLparam1(backup);
     WRAP(sqlite3_backup_finish ((sqlite3_backup*)backup));
-    return Val_unit;
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_backup_remaining(value backup){
-    return Val_int (sqlite3_backup_remaining ((sqlite3_backup*)backup));
+    CAMLparam1(backup);
+    CAMLreturn(Val_int (sqlite3_backup_remaining ((sqlite3_backup*)backup)));
 }
 
 value _ezsqlite_backup_pagecount(value backup){
-    return Val_int (sqlite3_backup_pagecount ((sqlite3_backup*)backup));
+    CAMLparam1(backup);
+    CAMLreturn(Val_int (sqlite3_backup_pagecount ((sqlite3_backup*)backup)));
 }
