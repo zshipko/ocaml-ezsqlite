@@ -5,7 +5,7 @@ let _ =
 
 type value =
     | Null
-    | Blob of string
+    | Blob of Bytes.t
     | Text of string
     | Double of float
     | Integer of Int64.t
@@ -25,9 +25,14 @@ let is_null = function
 
 let get_string = function
     | Null -> ""
-    | Blob s | Text s -> s
+    | Blob s -> Bytes.to_string s
+    | Text s -> s
     | Integer i -> Int64.to_string i
     | Double d -> string_of_float d
+
+let get_bytes = function
+    | Blob s -> s
+    | _ -> raise Invalid_type
 
 let get_float = function
     | Integer i -> Int64.to_float i
@@ -145,7 +150,7 @@ let parameter_index stmt = _ezsqlite_stmt_parameter_index stmt.stmt
 
 (* BIND *)
 external _ezsqlite_bind_null : stmt_handle -> int -> unit = "_ezsqlite_bind_null"
-external _ezsqlite_bind_blob : stmt_handle -> int -> string -> unit = "_ezsqlite_bind_blob"
+external _ezsqlite_bind_blob : stmt_handle -> int -> Bytes.t -> unit = "_ezsqlite_bind_blob"
 external _ezsqlite_bind_text : stmt_handle -> int -> string -> unit = "_ezsqlite_bind_text"
 external _ezsqlite_bind_double : stmt_handle -> int -> float -> unit = "_ezsqlite_bind_double"
 external _ezsqlite_bind_int64 : stmt_handle -> int -> int64 -> unit = "_ezsqlite_bind_int64"
@@ -175,7 +180,7 @@ let bind_list stmt list =
 external _ezsqlite_data_count : stmt_handle -> int = "_ezsqlite_data_count"
 external _ezsqlite_column_type : stmt_handle -> int -> int = "_ezsqlite_column_type"
 external _ezsqlite_column_text : stmt_handle -> int -> string = "_ezsqlite_column_text"
-external _ezsqlite_column_blob : stmt_handle -> int -> string = "_ezsqlite_column_blob"
+external _ezsqlite_column_blob : stmt_handle -> int -> Bytes.t = "_ezsqlite_column_blob"
 external _ezsqlite_column_int64 : stmt_handle -> int -> int64 = "_ezsqlite_column_int64"
 external _ezsqlite_column_int : stmt_handle -> int -> int = "_ezsqlite_column_int"
 external _ezsqlite_column_double : stmt_handle -> int -> float = "_ezsqlite_column_double"

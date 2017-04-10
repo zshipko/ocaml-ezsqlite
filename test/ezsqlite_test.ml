@@ -18,7 +18,7 @@ let test_stmt t db =
     (* Set/Get value *)
     let _ =
         let stmt = Ezsqlite.prepare db "INSERT INTO testing (a, b, c, d) VALUES (?, ?, ? , ?)" in
-        let _ = Ezsqlite.bind_list stmt Ezsqlite.[Text "test"; Blob "abc"; Integer 123L; Double 0.6] in
+        let _ = Ezsqlite.bind_list stmt Ezsqlite.[Text "test"; Blob (Bytes.of_string "abc"); Integer 123L; Double 0.6] in
         Ezsqlite.step stmt in
 
     let stmt = Ezsqlite.prepare db "SELECT * FROM testing" in

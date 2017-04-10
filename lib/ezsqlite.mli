@@ -3,7 +3,7 @@ exception Sqlite_error of string
 (** Datatypes that can be stored by SQLite *)
 type value =
     | Null
-    | Blob of string
+    | Blob of Bytes.t
     | Text of string
     | Double of float
     | Integer of Int64.t
@@ -19,6 +19,7 @@ exception Invalid_type
 
 val is_null : value -> bool
 val get_string : value -> string
+val get_bytes : value -> Bytes.t
 val get_float : value -> float
 val get_int : value -> int
 val get_int64 : value -> int64
@@ -60,7 +61,7 @@ val parameter_count : stmt -> int
 val parameter_index : stmt -> string -> int
 
 val column_text : stmt -> int -> string
-val column_blob : stmt -> int -> string
+val column_blob : stmt -> int -> Bytes.t
 val column_int64 : stmt -> int -> int64
 val column_int : stmt -> int -> int
 val column_double : stmt -> int -> float
