@@ -375,3 +375,51 @@ value _ezsqlite_backup_pagecount(value backup){
     CAMLparam1(backup);
     CAMLreturn(Val_int (sqlite3_backup_pagecount ((sqlite3_backup*)backup)));
 }
+
+value helper_blob_open(value db, value dbname, value tablename, value fieldname, value idx, int rw){
+   sqlite3_blob *blob;
+   WRAP(sqlite3_blob_open((sqlite3*)db, String_val(dbname), String_val(tablename), String_val(fieldname), Int64_val(idx), rw, &blob) != SQLITE_OK);
+
+   return (value)blob;
+}
+
+value _ezsqlite_blob_open_rw(value db, value dbname, value tablename, value fieldname, value idx){
+    CAMLparam5(db, dbname, tablename, fieldname, idx);
+    CAMLreturn(helper_blob_open(db, dbname, tablename, fieldname, idx, 1));
+}
+
+value _ezsqlite_blob_open_ro(value db, value dbname, value tablename, value fieldname, value idx){
+    CAMLparam5(db, dbname, tablename, fieldname, idx);
+    CAMLreturn(helper_blob_open(db, dbname, tablename, fieldname, idx, 0));
+}
+
+
+
+value _ezsqlite_blob_close (value blob){
+    CAMLparam1(blob);
+    WRAP(sqlite3_blob_close((sqlite3_blob*)blob));
+    CAMLreturn(Val_unit);
+}
+
+value _ezsqlite_blob_reopen (value blob, value idx){
+    CAMLparam2(blob, idx);
+    WRAP(sqlite3_blob_reopen((sqlite3_blob*)blob, Int64_val(idx)));
+    CAMLreturn(Val_unit);
+}
+
+value _ezsqlite_blob_bytes (value blob){
+    CAMLparam1(blob);
+    CAMLreturn(Val_int (sqlite3_blob_bytes((sqlite3_blob*)blob)));
+}
+
+value _ezsqlite_blob_read (value blob, value s, value n, value offs){
+    CAMLparam4(blob, s, n, offs);
+    WRAP(sqlite3_blob_read ((sqlite3_blob*)blob, String_val(s), Int_val(n), Int_val(offs)));
+    CAMLreturn(Val_unit);
+}
+
+value _ezsqlite_blob_write (value blob, value s, value n, value offs){
+    CAMLparam4(blob, s, n, offs);
+    WRAP(sqlite3_blob_write ((sqlite3_blob*)blob, String_val(s), Int_val(n), Int_val(offs)));
+    CAMLreturn(Val_unit);
+}

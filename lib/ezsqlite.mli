@@ -118,3 +118,15 @@ module Backup : sig
     val remaining : backup -> int
     val pagecount : backup -> int
 end
+
+module Blob : sig
+    type blob
+
+    val open_blob : t -> ?dbname:string -> ?rw:bool -> string -> string -> int64 -> blob
+    val close : blob -> unit
+    val reopen : blob -> int64 -> unit
+    val length : blob -> int
+    val read : blob -> ?offs:int -> Bytes.t -> int -> unit
+    val write : blob -> ?offs:int -> Bytes.t -> unit
+
+end

@@ -281,3 +281,50 @@ module Backup = struct
 
 end
 
+module Blob = struct
+    type blob_handle
+
+    type blob = {
+        blob : blob_handle;
+        mutable closed : bool
+    }
+
+    external _ezsqlite_blob_open_ro : t_handle -> string -> string -> string -> int64 -> blob_handle = "_ezsqlite_blob_open_ro"
+    external _ezsqlite_blob_open_rw : t_handle -> string -> string -> string -> int64 -> blob_handle = "_ezsqlite_blob_open_rw"
+    external _ezsqlite_blob_close : blob_handle -> unit = "_ezsqlite_blob_close"
+    external _ezsqlite_blob_reopen : blob_handle -> int64 -> unit = "_ezsqlite_blob_reopen"
+    external _ezsqlite_blob_bytes : blob_handle -> int  = "_ezsqlite_blob_bytes"
+    external _ezsqlite_blob_read : blob_handle -> Bytes.t -> int -> int -> unit = "_ezsqlite_blob_read"
+    external _ezsqlite_blob_write : blob_handle -> Bytes.t -> int -> int-> unit = "_ezsqlite_blob_write"
+
+    let close blob =
+        _ezsqlite_blob_close(blob.blob);
+        blob.closed <- true
+
+    let open_blob db ?dbname:(dbname="main") ?rw:(rw=false) table col i =
+        let b = {
+            blob =
+                if rw then _ezsqlite_blob_open_rw db.db dbname table col i
+                else _ezsqlite_blob_open_ro db.db dbname table col i;
+            closed = false;
+        } in
+        let _ = Gc.finalise (fun x ->
+            if not x.closed then
+                close x) in b
+
+    let reopen blob i =
+        _ezsqlite_blob_reopen blob.blob i
+
+    let length blob =
+        _ezsqlite_blob_bytes blob.blob
+
+    let read blob ?offs:(offs=0)  buf n =
+        _ezsqlite_blob_read blob.blob buf n offs
+
+    let write blob ?offs:(offs=0) buf =
+        _ezsqlite_blob_write blob.blob buf (Bytes.length buf) offs
+
+end
+
+
+

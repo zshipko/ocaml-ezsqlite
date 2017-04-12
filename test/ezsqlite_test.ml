@@ -21,8 +21,13 @@ let test_stmt t db =
         let _ = Ezsqlite.bind_list stmt Ezsqlite.[Text "test"; Blob (Bytes.of_string "abc"); Integer 123L; Double 0.6] in
         Ezsqlite.step stmt in
 
-    let stmt = Ezsqlite.prepare db "SELECT * FROM testing" in
+    let blob = Ezsqlite.Blob.open_blob db "testing" "b" 1L in
+    let b = Bytes.create 3 in
+    let _ = try Ezsqlite.Blob.read blob b 3 with _ -> print_endline "error" in
+    let () = Test.check t "Read Blob" (fun () ->
+            Bytes.to_string b) "abc" in
 
+    let stmt = Ezsqlite.prepare db "SELECT * FROM testing" in
     let _ = Ezsqlite.iter stmt (fun s ->
         Test.check t "Value of 'a'" (fun () ->
             Ezsqlite.column_text stmt 1) "test";
