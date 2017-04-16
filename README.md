@@ -16,6 +16,7 @@ The following compile-time flags have been set:
 ## Dependencies
 
     - topkg
+    - C compiler
 
 ## Installation
 

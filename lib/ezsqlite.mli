@@ -1,34 +1,36 @@
 exception Sqlite_error of string
 
-(** Datatypes that can be stored by SQLite *)
-type value =
-    | Null
-    | Blob of Bytes.t
-    | Text of string
-    | Double of float
-    | Integer of Int64.t
+module Value : sig
+    (** Datatypes that can be stored by SQLite *)
+    type value =
+        | Null
+        | Blob of Bytes.t
+        | Text of string
+        | Double of float
+        | Integer of Int64.t
 
-type kind =
-    | INTEGER
-    | DOUBLE
-    | TEXT
-    | BLOB
-    | NULL
+    type kind =
+        | INTEGER
+        | DOUBLE
+        | TEXT
+        | BLOB
+        | NULL
 
-exception Invalid_type
+    exception Invalid_type
 
-val is_null : value -> bool
-val get_string : value -> string
-val get_bytes : value -> Bytes.t
-val get_float : value -> float
-val get_int : value -> int
-val get_int64 : value -> int64
-val get_bool : value -> bool
+    val is_null : value -> bool
+    val get_string : value -> string
+    val get_bytes : value -> Bytes.t
+    val get_float : value -> float
+    val get_int : value -> int
+    val get_int64 : value -> int64
+    val get_bool : value -> bool
+end
+
+open Value
 
 (** sqlite3 handle *)
 type t
-
-type t_handle
 
 (** Load database from file *)
 val load : string -> t
@@ -60,17 +62,14 @@ val parameter_count : stmt -> int
 (** Get the index of a named parameter *)
 val parameter_index : stmt -> string -> int
 
-val column_text : stmt -> int -> string
-val column_blob : stmt -> int -> Bytes.t
-val column_int64 : stmt -> int -> int64
-val column_int : stmt -> int -> int
-val column_double : stmt -> int -> float
+val text : stmt -> int -> string
+val blob : stmt -> int -> Bytes.t
+val int64 : stmt -> int -> int64
+val int : stmt -> int -> int
+val double : stmt -> int -> float
 
 (** Get a value by index *)
 val column : stmt -> int -> value
-
-(** Get the column as a blob handler *)
-(*val open_blob : t -> int -> int64 -> Blob.t*)
 
 (** Execute a statement that returns no response *)
 val exec : stmt -> unit
@@ -83,8 +82,13 @@ val iter : stmt -> (stmt -> unit) -> unit
 (** Iterate over each step returning a value each time *)
 val map : stmt -> (stmt -> 'a) -> 'a list
 
+(** Fold a function over each step returning a single accumulated value *)
 val fold : stmt -> (stmt -> 'a -> 'a) -> 'a -> 'a
-val run : ?bind:value list -> t -> string  -> (stmt -> 'a) -> 'a list
+
+(** Convert a string into a statement and execute it *)
+val run :  t -> string -> ?bind:value list  -> (stmt -> 'a) -> 'a list
+
+val run_ign : t -> string -> ?bind:value list -> unit -> unit
 
 (** Get each column as an array *)
 val data : stmt -> value array
@@ -128,5 +132,11 @@ module Blob : sig
     val length : blob -> int
     val read : blob -> ?offs:int -> Bytes.t -> int -> unit
     val write : blob -> ?offs:int -> Bytes.t -> unit
+end
 
+module Infix : sig
+    val (|~) : t -> string -> t
+    val (|-) : t -> string * value list -> t
+    val (|+) : t -> string * (stmt -> 'a) -> 'a list
+    val (|$) : t -> string * value list * (stmt -> 'a) -> 'a list
 end

@@ -3,80 +3,84 @@ exception Sqlite_error of string
 let _ =
     Callback.register_exception "sqlite error" (Sqlite_error "")
 
-type value =
-    | Null
-    | Blob of Bytes.t
-    | Text of string
-    | Double of float
-    | Integer of Int64.t
+module Value = struct
+    type value =
+        | Null
+        | Blob of Bytes.t
+        | Text of string
+        | Double of float
+        | Integer of Int64.t
 
-type kind =
-    | INTEGER
-    | DOUBLE
-    | TEXT
-    | BLOB
-    | NULL
+    type kind =
+        | INTEGER
+        | DOUBLE
+        | TEXT
+        | BLOB
+        | NULL
 
-exception Invalid_type
+    exception Invalid_type
 
-let is_null = function
-    | Null -> true
-    | _ -> false
+    let is_null = function
+        | Null -> true
+        | _ -> false
 
-let get_string = function
-    | Null -> ""
-    | Blob s -> Bytes.to_string s
-    | Text s -> s
-    | Integer i -> Int64.to_string i
-    | Double d -> string_of_float d
+    let get_string = function
+        | Null -> ""
+        | Blob s -> Bytes.to_string s
+        | Text s -> s
+        | Integer i -> Int64.to_string i
+        | Double d -> string_of_float d
 
-let get_bytes = function
-    | Blob s -> s
-    | _ -> raise Invalid_type
+    let get_bytes = function
+        | Blob s -> s
+        | _ -> raise Invalid_type
 
-let get_float = function
-    | Integer i -> Int64.to_float i
-    | Double d -> d
-    | Text s -> begin try float_of_string s
-        with _ -> raise Invalid_type end
-    | _ -> raise Invalid_type
+    let get_float = function
+        | Integer i -> Int64.to_float i
+        | Double d -> d
+        | Text s -> begin try float_of_string s
+            with _ -> raise Invalid_type end
+        | _ -> raise Invalid_type
 
-let get_int = function
-    | Integer i -> Int64.to_int i
-    | Double d -> int_of_float d
-    | Text s -> begin try int_of_string s
-        with _ -> raise Invalid_type end
-    | _ -> raise Invalid_type
+    let get_int = function
+        | Integer i -> Int64.to_int i
+        | Double d -> int_of_float d
+        | Text s -> begin try int_of_string s
+            with _ -> raise Invalid_type end
+        | _ -> raise Invalid_type
 
-let get_int64 = function
-    | Integer i -> i
-    | Double d -> Int64.of_float d
-    | Text s -> begin try Int64.of_string s
-        with _ -> raise Invalid_type end
-    | _ -> raise Invalid_type
+    let get_int64 = function
+        | Integer i -> i
+        | Double d -> Int64.of_float d
+        | Text s -> begin try Int64.of_string s
+            with _ -> raise Invalid_type end
+        | _ -> raise Invalid_type
 
-let get_bool = function
-    | Integer 0L -> false
-    | Integer _ -> true
-    | Double 0. -> false
-    | Double _ -> true
-    | Text ("true"|"TRUE") -> true
-    | Text ("false"|"FALSE") -> false
-    | _ -> raise Invalid_type
+    let get_bool = function
+        | Integer 0L -> false
+        | Integer _ -> true
+        | Double 0. -> false
+        | Double _ -> true
+        | Text ("true"|"TRUE") -> true
+        | Text ("false"|"FALSE") -> false
+        | _ -> raise Invalid_type
 
-let kind_of_int = function
-    | 1 -> INTEGER
-    | 2 -> DOUBLE
-    | 3 -> TEXT
-    | 4 -> BLOB
-    | n -> NULL
+    let kind_of_int = function
+        | 1 -> INTEGER
+        | 2 -> DOUBLE
+        | 3 -> TEXT
+        | 4 -> BLOB
+        | n -> NULL
 
-let int_of_kind = function
-    | INTEGER -> 1
-    | DOUBLE -> 1
-    | TEXT -> 3
-    | BLOB -> 4
-    | NULL -> 5
+    let int_of_kind = function
+        | INTEGER -> 1
+        | DOUBLE -> 1
+        | TEXT -> 3
+        | BLOB -> 4
+        | NULL -> 5
+end
+
+open Value
 
 (* DB *)
 
@@ -191,24 +195,24 @@ external _ezsqlite_origin_name : stmt_handle -> int -> string = "_ezsqlite_origi
 
 let data_count stmt =  _ezsqlite_data_count stmt.stmt
 
-let column_text stmt i = if i < data_count stmt then _ezsqlite_column_text stmt.stmt i else raise Not_found
+let text stmt i = if i < data_count stmt then _ezsqlite_column_text stmt.stmt i else raise Not_found
 
-let column_blob stmt i = if i < data_count stmt then _ezsqlite_column_blob stmt.stmt i else raise Not_found
+let blob stmt i = if i < data_count stmt then _ezsqlite_column_blob stmt.stmt i else raise Not_found
 
-let column_int64 stmt i = if i < data_count stmt then _ezsqlite_column_int64 stmt.stmt i else raise Not_found
+let int64 stmt i = if i < data_count stmt then _ezsqlite_column_int64 stmt.stmt i else raise Not_found
 
-let column_int stmt i = if i < data_count stmt then _ezsqlite_column_int stmt.stmt i else raise Not_found
+let int stmt i = if i < data_count stmt then _ezsqlite_column_int stmt.stmt i else raise Not_found
 
-let column_double stmt i = if i < data_count stmt then _ezsqlite_column_double stmt.stmt i else raise Not_found
+let double stmt i = if i < data_count stmt then _ezsqlite_column_double stmt.stmt i else raise Not_found
 
 let column_type stmt i = if i > data_count stmt then raise Not_found else  kind_of_int (_ezsqlite_column_type stmt.stmt i)
 
 let column stmt i =
     match column_type stmt i with
-        | INTEGER -> Integer (column_int64 stmt i)
-        | DOUBLE -> Double (column_double stmt i)
-        | TEXT -> Text (column_text stmt i)
-        | BLOB -> Blob (column_blob stmt i)
+        | INTEGER -> Integer (int64 stmt i)
+        | DOUBLE -> Double (double stmt i)
+        | TEXT -> Text (text stmt i)
+        | BLOB -> Blob (blob stmt i)
         | NULL -> Null
 
 let data stmt =
@@ -246,10 +250,13 @@ let fold stmt fn acc =
         dst := fn stmt !dst
     done; !dst
 
-let run ?bind:(bind=[]) db s fn =
+let run db s ?bind:(bind=[]) fn =
     let x = prepare db s in
     let () = bind_list x bind in
     map x fn
+
+let run_ign db s ?bind () =
+    ignore (run db s ?bind ignore)
 
 module Backup = struct
     type backup_handle
@@ -326,5 +333,10 @@ module Blob = struct
 
 end
 
-
-
+module Infix = struct
+    include Value
+    let (|~) db s = run_ign db s (); db
+    let (|-) db (s, bind) = run_ign db s ~bind (); db
+    let (|+) db (s, fn) = run db s fn
+    let (|$) db (s, bind, fn) = run db s ~bind fn
+end

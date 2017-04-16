@@ -1,3 +1,4 @@
+open Ezsqlite.Value
 
 let test_db t =
     let db = Ezsqlite.load "_test.db" in
@@ -30,13 +31,13 @@ let test_stmt t db =
     let stmt = Ezsqlite.prepare db "SELECT * FROM testing" in
     let _ = Ezsqlite.iter stmt (fun s ->
         Test.check t "Value of 'a'" (fun () ->
-            Ezsqlite.column_text stmt 1) "test";
+            Ezsqlite.text stmt 1) "test";
         Test.check t "Value of 'b'" (fun () ->
-            Ezsqlite.column_text stmt 2) "abc";
+            Ezsqlite.text stmt 2) "abc";
         Test.check t "Value of 'c'" (fun () ->
-            Ezsqlite.column_text stmt 3) "123";
+            Ezsqlite.text stmt 3) "123";
         Test.check t "Value of 'd'" (fun () ->
-            Ezsqlite.column_text stmt 4) "0.6")
+            Ezsqlite.text stmt 4) "0.6")
     in ()
 
 let _ =
