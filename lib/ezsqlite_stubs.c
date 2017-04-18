@@ -160,7 +160,7 @@ value _ezsqlite_db_load (value path){
     _init();
     CAMLparam1(path);
     sqlite3 *handle = NULL;
-    WRAP(sqlite3_open (String_val(path), &handle));
+    WRAP(sqlite3_open_v2 (String_val(path), &handle, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL));
     CAMLreturn ((value)handle);
 }
 
