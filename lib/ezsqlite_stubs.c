@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define WRAP(x) do{if (x != SQLITE_OK){\
+#define WRAP(x) do{if ((x) != SQLITE_OK){\
     sqlite3_error(x);\
     return Val_unit;\
 }}while(0)
