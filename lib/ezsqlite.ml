@@ -24,6 +24,15 @@ module Value = struct
         | Null -> true
         | _ -> false
 
+    let to_string = function
+        | Null -> "NULL"
+        | Integer i -> Int64.to_string i
+        | Double d -> string_of_float d
+        | Text t -> "'" ^ Str.global_replace (Str.regexp "'") "''" t ^ "'"
+        | Blob b ->
+            let x = Bytes.to_string b |> Hex.of_string |> fun (`Hex h) -> String.uppercase_ascii h in
+            "X'" ^ Str.global_replace (Str.regexp "'") "''" x ^ "'"
+
     let get_string = function
         | Null -> ""
         | Blob s -> Bytes.to_string s
@@ -257,6 +266,19 @@ let run db s ?bind:(bind=[]) fn =
 
 let run_ign db s ?bind () =
     ignore (run db s ?bind ignore)
+
+let dump_sql db name =
+    let b = Buffer.create 1024 in
+    run db "SELECT sql FROM sqlite_master WHERE name=?" ~bind:[Text name] (fun stmt ->
+        Buffer.add_string b (text stmt 0 ^ ";\n")) |> ignore;
+    run db ("SELECT * FROM " ^ name) (fun stmt ->
+        let s = dict stmt in
+        let fields, values = List.split s in
+        let fields = String.concat ", " fields in
+        let values = String.concat ", " (List.map Value.to_string values) in
+        Buffer.add_string b (Printf.sprintf "INSERT INTO %s (%s) VALUES (%s);\n" name fields values)) |> ignore;
+    Buffer.contents b
+
 
 module Backup = struct
     type backup_handle

@@ -19,6 +19,7 @@ module Value : sig
     exception Invalid_type
 
     val is_null : value -> bool
+    val to_string : value -> string
     val get_string : value -> string
     val get_bytes : value -> Bytes.t
     val get_float : value -> float
@@ -113,6 +114,8 @@ val origin_name : stmt -> int -> string
 
 (* Get the name of a column by index *)
 val column_name : stmt -> int -> string
+
+val dump_sql : t -> string -> string
 
 module Backup : sig
     type backup
