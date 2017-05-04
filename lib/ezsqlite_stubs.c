@@ -37,6 +37,8 @@ value copy_s (sqlite3_value *blob, int isblob){
     return s;
 }
 
+value Null = Long_val(0);
+
 value caml_of_sqlite (char const *data){
     sqlite3_value *v = (sqlite3_value*)data;
     value dst;
@@ -60,11 +62,11 @@ value caml_of_sqlite (char const *data){
             Store_field(dst, 0, copy_s (v, 0));
             return dst;
         default:
-            return Long_val(0);
+            return Null;
         }
     }
 
-    return Long_val (0);
+    return Null;
 }
 
 void set_result (sqlite3_context *ctx, value inp){
@@ -270,8 +272,9 @@ value _ezsqlite_column_type (value stmt, value i){
 
 value _ezsqlite_column_text (value stmt, value i){
     CAMLparam1(stmt);
+    CAMLlocal1(s);
     int len = sqlite3_column_bytes ((sqlite3_stmt*)stmt, Int_val(i));
-    value s = caml_alloc_string (len);
+    s = caml_alloc_string (len);
     const char* txt = sqlite3_column_text ((sqlite3_stmt*)stmt, Int_val(i));
     if (txt){
         memcpy(String_val(s), txt, len);
@@ -281,8 +284,9 @@ value _ezsqlite_column_text (value stmt, value i){
 
 value _ezsqlite_column_blob (value stmt, value i){
     CAMLparam2(stmt, i);
+    CAMLlocal1(s);
     int len = sqlite3_column_bytes ((sqlite3_stmt*)stmt, Int_val(i));
-    value s = caml_alloc_string (len);
+    s = caml_alloc_string (len);
     const char * blob = sqlite3_column_blob ((sqlite3_stmt*)stmt, Int_val(i));
     if (blob){
         memcpy(String_val(s), blob, len);
