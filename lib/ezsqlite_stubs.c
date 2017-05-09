@@ -74,17 +74,17 @@ void set_result (sqlite3_context *ctx, value inp){
         sqlite3_result_null(ctx);
     } else {
         int length = 0;
-        value str;
+        char *str;
         switch (Tag_val(inp)){
         case 0:
-            str = Field(inp, 0);
-            length = caml_string_length (str);
-            sqlite3_result_blob (ctx, String_val(str), length, SQLITE_TRANSIENT);
+            length = caml_string_length (Field(inp, 0));
+            str = strndup(String_val(Field(inp, 0)), length);
+            sqlite3_result_blob (ctx, String_val(str), length, free);
             break;
         case 1:
-            str = Field(inp, 0);
-            length = caml_string_length (str);
-            sqlite3_result_text (ctx, String_val(str), length, SQLITE_TRANSIENT);
+            length = caml_string_length (Field(inp, 0));
+            str = strndup(String_val(Field(inp, 0)), length);
+            sqlite3_result_text (ctx, String_val(str), length, free);
             break;
         case 2:
             sqlite3_result_double (ctx, Double_val(Field(inp, 0)));
@@ -232,13 +232,17 @@ value _ezsqlite_bind_null (value stmt, value i){
 
 value _ezsqlite_bind_blob (value stmt, value i, value s){
     CAMLparam3(stmt, i, s);
-    WRAP(sqlite3_bind_blob((sqlite3_stmt*)stmt, Int_val(i), String_val(s), caml_string_length(s), SQLITE_TRANSIENT));
+    size_t len = caml_string_length(s);
+    char *x = strndup(String_val(s), len);
+    WRAP(sqlite3_bind_blob((sqlite3_stmt*)stmt, Int_val(i), x, len, free));
     CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_bind_text (value stmt, value i, value s){
     CAMLparam3(stmt, i, s);
-    WRAP(sqlite3_bind_text((sqlite3_stmt*)stmt, Int_val(i), String_val(s), caml_string_length(s), SQLITE_TRANSIENT));
+    size_t len = caml_string_length(s);
+    char *x = strndup(String_val(s), len);
+    WRAP(sqlite3_bind_text((sqlite3_stmt*)stmt, Int_val(i), x, len, free));
     CAMLreturn(Val_unit);
 }
 

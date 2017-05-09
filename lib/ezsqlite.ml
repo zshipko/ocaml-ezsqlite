@@ -129,7 +129,6 @@ let create_function db name nargs fn =
 type stmt_handle
 type stmt = {
     raw : string;
-    mutable _db : t;
     mutable stmt : stmt_handle;
 }
 
@@ -142,7 +141,6 @@ external _ezsqlite_stmt_clear_bindings : stmt_handle -> unit = "_ezsqlite_stmt_c
 let prepare db s =
     let stmt = {
         raw = s;
-        _db = db;
         stmt = _ezsqlite_stmt_prepare db.db s;
     } in
     let _ = Gc.finalise (fun x ->
@@ -235,7 +233,6 @@ let column_name stmt n = if n < data_count stmt then _ezsqlite_column_name stmt.
 let database_name stmt n = if n < data_count stmt then _ezsqlite_database_name stmt.stmt n else raise Not_found
 let table_name stmt n = if n < data_count stmt then _ezsqlite_table_name stmt.stmt n else raise Not_found
 let origin_name stmt n = if n < data_count stmt then _ezsqlite_origin_name stmt.stmt n else raise Not_found
-let database stmt = stmt._db
 
 let dict stmt =
     data stmt |> Array.to_list |> List.mapi (fun i x ->
