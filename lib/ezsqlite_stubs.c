@@ -123,7 +123,7 @@ int commit_hook_callback(void *data){
     value *v = caml_named_value("commit hook");
 
     if (v){
-        return Int_val(caml_callback(*v, Val_unit));
+        return Val_int(caml_callback(*v, Val_unit));
     }
 
     return 0;
@@ -133,7 +133,7 @@ void update_hook_callback(void *data, int i, char const *a, char const *b, sqlit
     value *v = caml_named_value("update hook");
 
     if (v){
-        value args[] = {Int_val(i), caml_copy_string (a), caml_copy_string (b), caml_copy_int64(rowid)};
+        value args[] = {Val_int(i), caml_copy_string (a), caml_copy_string (b), caml_copy_int64(rowid)};
         caml_callbackN(*v,4, args);
     }
 }
