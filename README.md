@@ -15,12 +15,13 @@ The following compile-time flags have been set:
 
 ## Dependencies
 
-    - topkg
-    - C compiler
+- topkg
+- hex
+- C compiler
 
 ## Installation
 
-    opam pin add ezsqlite .
+    opam install ezsqlite
 
 ## Testing
 
