@@ -37,7 +37,16 @@ let test_stmt t db =
         Test.check t "Value of 'c'" (fun () ->
             Ezsqlite.text stmt 3) "123";
         Test.check t "Value of 'd'" (fun () ->
-            Ezsqlite.text stmt 4) "0.6")
+            Ezsqlite.text stmt 4) "0.6") in
+
+    (* Custom functions *)
+
+    let _ = Ezsqlite.create_function db "tostring" 1 (fun x ->
+        Ezsqlite.Value.Text (Ezsqlite.Value.to_string x.(0))) in
+
+    let _ = Ezsqlite.run db "SELECT tostring(12)" (fun x ->
+        Test.check t "create_function" (fun () -> Ezsqlite.text x 0) "12")
+
     in ()
 
 let _ =
