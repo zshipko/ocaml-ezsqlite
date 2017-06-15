@@ -45,7 +45,20 @@ let test_stmt t db =
         Ezsqlite.Value.Text (Ezsqlite.Value.to_string x.(0))) in
 
     let _ = Ezsqlite.run db "SELECT tostring(12)" (fun x ->
-        Test.check t "create_function" (fun () -> Ezsqlite.text x 0) "12")
+        Test.check t "create_function" (fun () -> Ezsqlite.text x 0) "12") in
+
+
+    (* Errors *)
+
+    let _= Test.check t "error 1" (fun () ->
+        try let _ = Ezsqlite.run_ign db "SELECT * from fakedb" () in false  with _ -> true) true in
+
+    let _= Test.check t "error 2" (fun () ->
+        try let _ = Ezsqlite.run_ign db "" () in false  with _ -> true) true in
+
+    let _= Test.check t "error 3" (fun () ->
+        try let _ = Ezsqlite.run_ign db "SELECT x from testing" () in false  with _ -> true) true
+
 
     in ()
 

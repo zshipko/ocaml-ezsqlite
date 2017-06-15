@@ -16,7 +16,15 @@
 }}while(0)
 
 void sqlite3_error (int i) {
-    caml_raise_with_string(*caml_named_value("sqlite error"), sqlite3_errstr(i));
+    value *sqlite_error = caml_named_value("sqlite error");
+    const char *err = sqlite3_errstr(i);
+    if (err && sqlite_error){
+        caml_raise_with_string(*sqlite_error, err);
+    } else if (sqlite_error) {
+        caml_raise_with_string(*sqlite_error, "Unknown");
+    } else {
+        caml_failwith ("Unknown sqlite error");
+    }
 }
 
 // Db
