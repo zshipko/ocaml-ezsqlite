@@ -12,6 +12,7 @@ The following compile-time flags have been set:
     #define SQLITE_ENABLE_JSON1 1
     #define SQLITE_ENABLE_RTREE 1
     #define SQLITE_ENABLE_SESSION 1
+    #define SQLITE_THREADSAFE 2
 
 ## Dependencies
 
