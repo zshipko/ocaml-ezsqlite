@@ -1,3 +1,7 @@
+### 0.3 (2017-6-15)
+
+* Fix issues when using with threaded modules
+
 ### 0.2 (2017-3-1)
 
 * Backup functions

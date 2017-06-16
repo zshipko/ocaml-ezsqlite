@@ -21,9 +21,9 @@ void sqlite3_error (int i) {
     if (err && sqlite_error){
         caml_raise_with_string(*sqlite_error, err);
     } else if (sqlite_error) {
-        caml_raise_with_string(*sqlite_error, "Unknown");
+        caml_raise_with_string(*sqlite_error, "unknown");
     } else {
-        caml_failwith ("Unknown sqlite error");
+        caml_failwith ("unknown sqlite error");
     }
 }
 
@@ -86,13 +86,11 @@ void set_result (sqlite3_context *ctx, value inp){
         switch (Tag_val(inp)){
         case 0:
             length = caml_string_length (Field(inp, 0));
-            str = strndup(String_val(Field(inp, 0)), length);
-            sqlite3_result_blob (ctx, String_val(str), length, free);
+            sqlite3_result_blob (ctx, String_val(Field(inp, 0)), length, SQLITE_TRANSIENT);
             break;
         case 1:
             length = caml_string_length (Field(inp, 0));
-            str = strndup(String_val(Field(inp, 0)), length);
-            sqlite3_result_text (ctx, String_val(str), length, free);
+            sqlite3_result_text (ctx, String_val(Field(inp, 0)), length, SQLITE_TRANSIENT);
             break;
         case 2:
             sqlite3_result_double (ctx, Double_val(Field(inp, 0)));
@@ -108,7 +106,7 @@ void set_result (sqlite3_context *ctx, value inp){
 
 void call_function(sqlite3_context *ctx, int narg, sqlite3_value **args){
     value *fn = sqlite3_user_data(ctx);
-if (fn){
+    if (fn){
         value xargs = caml_alloc_array (caml_of_sqlite, (char const **)args);
         set_result (ctx, caml_callback (*fn, xargs));
     } else {
@@ -177,7 +175,9 @@ value _ezsqlite_db_load (value path){
 value _ezsqlite_db_free (value db){
     CAMLparam1(db);
     sqlite3 *handle = (sqlite3*)db;
-    WRAP(sqlite3_close(handle));
+    if (handle){
+        sqlite3_close(handle);
+    }
     CAMLreturn(Val_unit);
 }
 
@@ -192,8 +192,10 @@ value _ezsqlite_stmt_prepare (value db, value s) {
 
 value _ezsqlite_stmt_finalize (value stmt) {
     CAMLparam1(stmt);
-    WRAP(sqlite3_finalize((sqlite3_stmt*)stmt));
-    CAMLreturn (Val_unit);
+    if ((sqlite3_stmt*)stmt){
+        sqlite3_finalize((sqlite3_stmt*)stmt);
+    }
+    CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_stmt_step (value stmt){
@@ -241,16 +243,14 @@ value _ezsqlite_bind_null (value stmt, value i){
 value _ezsqlite_bind_blob (value stmt, value i, value s){
     CAMLparam3(stmt, i, s);
     size_t len = caml_string_length(s);
-    char *x = strndup(String_val(s), len);
-    WRAP(sqlite3_bind_blob((sqlite3_stmt*)stmt, Int_val(i), x, len, free));
+    WRAP(sqlite3_bind_blob((sqlite3_stmt*)stmt, Int_val(i), String_val(s), len, SQLITE_TRANSIENT));
     CAMLreturn(Val_unit);
 }
 
 value _ezsqlite_bind_text (value stmt, value i, value s){
     CAMLparam3(stmt, i, s);
     size_t len = caml_string_length(s);
-    char *x = strndup(String_val(s), len);
-    WRAP(sqlite3_bind_text((sqlite3_stmt*)stmt, Int_val(i), x, len, free));
+    WRAP(sqlite3_bind_text((sqlite3_stmt*)stmt, Int_val(i), String_val(s), len, SQLITE_TRANSIENT));
     CAMLreturn(Val_unit);
 }
 
@@ -283,7 +283,7 @@ value _ezsqlite_column_type (value stmt, value i){
 }
 
 value _ezsqlite_column_text (value stmt, value i){
-    CAMLparam1(stmt);
+    CAMLparam2(stmt, i);
     CAMLlocal1(s);
     int len = sqlite3_column_bytes ((sqlite3_stmt*)stmt, Int_val(i));
     s = caml_alloc_string (len);
