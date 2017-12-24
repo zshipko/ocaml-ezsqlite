@@ -1,9 +1,0 @@
-true: bin_annot, safe_string, package(bytes str hex)
-
-"lib": include
-"test": include
-
-<lib/*.{cma,cmxa,cmxs}>: use_ezsqlite_stubs
-<lib/*.cma>: custom, link_ezsqlite_stubs
-
-<test/*.native>: link_ezsqlite_stubs

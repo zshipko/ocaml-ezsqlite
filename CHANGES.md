@@ -1,3 +1,7 @@
+### 0.4 (2017-12-23)
+
+* Switch to jbuilder
+
 ### 0.3 (2017-6-15)
 
 * Fix issues when using with threaded modules

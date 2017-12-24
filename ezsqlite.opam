@@ -7,13 +7,8 @@ homepage: "https://github.com/zshipko/ocaml-ezsqlite"
 bug-reports: "https://github.com/zshipko/ocaml-ezsqlite/issues"
 dev-repo: "https://github.com/zshipko/ocaml-ezsqlite.git"
 doc: "https://github.com/zshipko/ocaml-ezsqlite"
-build: [[
-    "ocaml" "./pkg/pkg.ml" "build"
-        "--pinned" "%{pinned}%"
-]]
-build-test: [
-    [ "ocaml" "pkg/pkg.ml" "build" "--pinned" "%{pinned}%" "--tests" "true" ]
-    [ "ocaml" "pkg/pkg.ml" "test" ]
+build: [
+    ["jbuilder" "build" "--only" "ezsqlite" "--root" "." "-j" jobs "@install"]
 ]
 depends: [
     "ocamlfind" {build}

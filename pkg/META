@@ -1,9 +1,0 @@
-description = "A simple interface to to SQLite3"
-version= "%%VERSION_NUM%%"
-
-requires = "hex str"
-archive(byte) = "ezsqlite.cma"
-archive(native) = "ezsqlite.cmxa"
-plugin(byte) = "ezsqlite.cma"
-plugin(native) = "ezsqlite.cmxs"
-
