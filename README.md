@@ -26,8 +26,7 @@ The following compile-time flags have been set:
 
 ## Testing
 
-    ./pkg/pkg.ml build --tests true
-    ./pkg/pkg.ml test
+    jbuilder runtest
 
 ## Documentation
 
