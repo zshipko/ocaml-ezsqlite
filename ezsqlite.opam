@@ -8,12 +8,11 @@ bug-reports: "https://github.com/zshipko/ocaml-ezsqlite/issues"
 dev-repo: "https://github.com/zshipko/ocaml-ezsqlite.git"
 doc: "https://github.com/zshipko/ocaml-ezsqlite"
 build: [
-    ["jbuilder" "build" "--only" "ezsqlite" "--root" "." "-j" jobs "@install"]
+    ["dune" "build" "-p" name "-j" jobs]
 ]
 depends: [
-    "ocamlfind" {build}
-    "ocamlbuild" {build}
-    "topkg" {build}
+    "dune" {build}
     "hex"
+    "str"
 ]
 available: [ ocaml-version >= "4.03.0" ]
