@@ -79,14 +79,7 @@ module Value = struct
         | 2 -> DOUBLE
         | 3 -> TEXT
         | 4 -> BLOB
-        | n -> NULL
-
-    let int_of_kind = function
-        | INTEGER -> 1
-        | DOUBLE -> 1
-        | TEXT -> 3
-        | BLOB -> 4
-        | NULL -> 5
+        | _ -> NULL
 end
 
 open Value
@@ -212,7 +205,7 @@ let int stmt i = if i < data_count stmt then _ezsqlite_column_int stmt.stmt i el
 
 let double stmt i = if i < data_count stmt then _ezsqlite_column_double stmt.stmt i else raise Not_found
 
-let column_type stmt i = if i > data_count stmt then raise Not_found else  kind_of_int (_ezsqlite_column_type stmt.stmt i)
+let column_type stmt i = if i > data_count stmt then raise Not_found else kind_of_int (_ezsqlite_column_type stmt.stmt i)
 
 let column stmt i =
     match column_type stmt i with

@@ -1,6 +1,6 @@
-### 0.4 (2017-12-23)
+### 0.4
 
-* Switch to jbuilder
+* Switch to dune
 
 ### 0.3 (2017-6-15)
 

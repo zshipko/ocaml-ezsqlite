@@ -1,9 +1,0 @@
-(jbuild_version 1)
-
-(library
-    ((name ezsqlite)
-     (libraries (str hex))
-     (c_names (sqlite3 ezsqlite_stubs))
-     (c_library_flags (-lpthread))
-     (public_name ezsqlite)))
-
