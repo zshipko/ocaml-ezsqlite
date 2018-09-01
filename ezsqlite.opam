@@ -12,6 +12,5 @@ build: [
 depends: [
     "dune" {build}
     "hex"
-    "str"
 ]
 available: [ ocaml-version >= "4.03.0" ]
