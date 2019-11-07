@@ -4,7 +4,7 @@ authors: ["Zach Shipko"]
 license: "ISC"
 homepage: "https://github.com/zshipko/ocaml-ezsqlite"
 bug-reports: "https://github.com/zshipko/ocaml-ezsqlite/issues"
-dev-repo: "git+https://github.com/zshipko/ocaml-ezsqlite.git"
+dev-repo: "git://github.com/zshipko/ocaml-ezsqlite.git"
 doc: "https://zshipko.github.io/ocaml-ezsqlite/doc"
 build: [
     ["dune" "build" "-p" name "-j" jobs]
