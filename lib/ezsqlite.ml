@@ -287,7 +287,7 @@ module Backup = struct
             backup = _ezsqlite_backup_init dst.db dstName src.db srcName
         } in
         let _ = Gc.finalise (fun x ->
-            _ezsqlite_backup_finish(x.backup)) in b
+            _ezsqlite_backup_finish(x.backup)) b in b
 
     let step b n =
         _ezsqlite_backup_step b.backup n
@@ -329,7 +329,7 @@ module Blob = struct
         } in
         let _ = Gc.finalise (fun x ->
             if not x.closed then
-                close x) in b
+                close x) b in b
 
     let reopen blob i =
         _ezsqlite_blob_reopen blob.blob i
