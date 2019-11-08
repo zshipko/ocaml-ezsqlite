@@ -11,7 +11,7 @@ build: [
 ]
 depends: [
     "ocaml" {>= "4.03.0"}
-    "dune" {>= "1.0"}
+    "dune" {>= "1.1"}
     "hex"
 ]
 
